@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо фортуны</title>
+    <style>
+        html {
+            width: fit-content;
+            overflow-x: hidden;
+        }
+
+        body {
+            min-width: fit-content;
+            gap: 20px;
+            display: flex;
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+
+        button {
+            display: block;
+            margin: 0px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        span {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Колесо фортуны</h1>
+    <canvas id="wheel" width="500" height="500"></canvas>
+    <button id="spin">Крутить!</button>
+    <span id="result"></span>
+
+    <script>
+        // массив секторов и их цветов
+        let sectors = [
+            { "surname": "Абдрашитова", "color": "#0074D9" },
+            { "surname": "Багдасарян", "color": "#2ECC40" },
+            { "surname": "Ванюшина", "color": "#FF4136" },
+            { "surname": "Гвозделюк", "color": "#FFDC00" },
+            { "surname": "Елгин", "color": "#B10DC9" },
+            { "surname": "Ельцов", "color": "#F012BE" },
+            { "surname": "Еремина", "color": "#FF851B" },
+            { "surname": "Каравашкин", "color": "#7FDBFF" },
+            { "surname": "Касимов", "color": "#01FF70" },
+            { "surname": "Касимова", "color": "#DDDDDD" },
+            { "surname": "Меметов", "color": "#111111" },
+            { "surname": "Мищенко", "color": "#AAAAAA" },
+            { "surname": "Толубицкий", "color": "#FF69B4" },
+            { "surname": "Беляков", "color": "#8B008B" },
+            { "surname": "Булдаковская", "color": "#DC143C" },
+            { "surname": "Алимов", "color": "#00FFFF" },
+            { "surname": "Кулагина", "color": "#0000FF" },
+            { "surname": "Михеев", "color": "#008000" },
+            { "surname": "Пигарев", "color": "#FFD700" },
+            { "surname": "Пинкова", "color": "#800080" },
+            { "surname": "Полстянов", "color": "#FFA500" },
+            { "surname": "Романова", "color": "#9400D3" },
+            { "surname": "Сергеева", "color": "#4B0082" },
+            { "surname": "Сизов", "color": "#7CFC00" },
+            { "surname": "Сушков", "color": "#FF4500" },
+            { "surname": "Федорин", "color": "#4169E1" },
+            { "surname": "Бабушкина", "color": "#F08080" }
+        ];
+
+        // создаем элемент canvas и контекст рисования
+        let canvas = document.getElementById('wheel');
+        let ctx = canvas.getContext('2d');
+
+        // вычисляем центр колеса и радиус
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        let radius = (canvas.width / 2) - 20;
+
+        // угол начала рисования секторов
+        let startAngle = 0;
+
+        // рисуем каждый сектор
+        for (let i = 0; i < sectors.length; i++) {
+            // вычисляем угол и конечный угол сектора
+            let angle = Math.PI * 2 / sectors.length;
+            let endAngle = startAngle + angle;
+
+            // начинаем новый путь рисования и настраиваем его параметры
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
+            ctx.closePath();
+            ctx.fillStyle = sectors[i].color;
+            ctx.fill();
+
+            // добавляем текст внутри сектора
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + angle / 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(sectors[i].surname, radius / 2, 0);
+            ctx.restore();
+
+            // обновляем угол начала следующего сектора
+            startAngle = endAngle;
+        }
+
+        // обработчик события клика на кнопке "Крутить!"
+        document.getElementById('spin').addEventListener('click', function () {
+            // генерируем случайный угол поворота колеса
+            let randomAngle = Math.floor(Math.random() * 360);
+
+            // анимируем вращение колеса
+            let animation = canvas.animate([
+                { transform: 'rotate(0deg)' },
+                { transform: 'rotate(' + (randomAngle + 360 * 3) + 'deg)' }
+            ], {
+                duration: 5000,
+                easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+                iterations: 1
+            });
+
+            // обновляем текст кнопки
+            document.getElementById('spin').textContent = 'Крутим...';
+
+            // по завершению анимации показываем результат
+            animation.onfinish = function () {
+                // вычисляем сектор, на котором остановилось колесо
+                let stopAngle = (randomAngle + 360 * 3) % 360;
+                let sectorIndex = Math.floor(stopAngle / (360 / sectors.length));
+
+                // выводим информацию о выигрыше
+                document.getElementById('result').textContent = `Выпал ${sectors[sectorIndex].surname}!`
+                // alert('Вы выиграли "' + sectors[sectorIndex].surname + '"!');
+                document.getElementById('spin').textContent = 'Крутить!';
+            };
+        });
+    </script>
+</body>
+
+</html>
